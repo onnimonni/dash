@@ -6,8 +6,8 @@ ANSIBLE_NEEDED="2.0"
 # Only OS X yosemite and later support xhyve
 OSX_NEEDED="10.10.0"
 
-# This is fork from original
-REPO='onnimonni/dash'
+# This is fork from original dash
+REPO='devgeniem/dash'
 
 # Returns 1 if upgrade is needed
 # $1 - SYSTEM VERSION
@@ -89,7 +89,7 @@ fi
 echo -e "\n\n"
 
 ## Check out a copy of this repo (first time only) ##
-echo 'Checking out Dash repo...'
+echo 'Checking out gdev repo...'
 git clone https://github.com/$REPO.git /usr/local/gdev-env 2>/dev/null
 
 ## Run Ansible Playbook ##

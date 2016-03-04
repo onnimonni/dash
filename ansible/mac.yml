@@ -30,15 +30,25 @@
         state: directory
         mode: 0755
 
-    - name: Start dlite
+    - name: Create machine
       command: "{{ dev_env_dir }}/bin/gdev machine create"
       args:
         creates: "{{ansible_env.HOME}}/.dlite/config.json"
       become: yes
       become_method: sudo
 
-    - name: Get dlite ip address
-      shell: /usr/local/bin/dlite ip
+    - name: Start machine
+      command: "{{ dev_env_dir }}/bin/gdev machine start"
+      args:
+        creates: "{{ansible_env.HOME}}/.dlite/config.json"
+      become: yes
+      become_method: sudo
+
+    - name: Give machine some time to start
+      pause: seconds=30
+
+    - name: Get machine ip address
+      shell: "{{ dev_env_dir }}/bin/gdev machine ip"
       register: machine_ip
 
     - name: "Debug dlite ip"
