@@ -4,11 +4,12 @@
 
   vars:
     dev_env_dir: /usr/local/gdev-env
+    gdev_user_files: "{{ansible_env.HOME}}/.gdev"
 
   tasks:
 
     - name: Check Sudo Password
-      command: ls
+      command: "echo 'sudo works'"
       become: yes
       become_method: sudo
 
@@ -44,8 +45,11 @@
       become: yes
       become_method: sudo
 
-    - name: Give machine some time to start
-      pause: seconds=30
+    - name: Wait for machine to start
+      wait_for:
+        path: "/var/run/docker.sock"
+        state: present
+        timeout: 30
 
     - name: Get machine ip address
       shell: "{{ dev_env_dir }}/bin/gdev machine ip"
@@ -54,6 +58,25 @@
     - name: "Debug dlite ip"
       debug:
         msg: "Dlite is up and running: {{ machine_ip.stdout }}"
+
+    - name: Start gdev services
+      command: "{{ dev_env_dir }}/bin/gdev service up"
+
+    - name: Wait for signaler to create CA file
+      wait_for:
+        path: "{{ gdev_user_files }}/ca/ca.crt"
+        state: present
+        timeout: 30
+
+
+    # This only works in OS X and doesn't affect firefox
+    # We want to use https locally and you only use ca.key which is generated to you
+    - name: Trust self-generated signaler Root certificate in keychain
+      shell: "security add-trusted-cert -d -r trustRoot -k '/Library/Keychains/System.keychain' ca.crt"
+      args:
+        chdir: "{{ gdev_user_files }}/ca/"
+      become: yes
+      become_method: sudo
 
     - name: Create resolver directory
       file: path=/etc/resolver state=directory mode=0755
