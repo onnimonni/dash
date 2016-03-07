@@ -55,10 +55,21 @@ HEREDOC
   end
 
   def up(args)
+    # Check how many certs we had in beginning
+    certs_count_first = amount_of_cert_files()
+
     service(["up"])
     args.insert(1, "-d")
     args.unshift("docker-compose")
     system(args.join(" "))
+
+    # Wait for just a little bit for signaler
+    sleep(1.0/24.0)
+
+    # Restart nginx if onnimonni/signaler added more certs in 'up'
+    if ( certs_count_first != amount_of_cert_files() ) 
+      service(["restart nginx"])
+    end
   end
 
   def machine(args)
@@ -149,6 +160,14 @@ HEREDOC
     end
     return output
   end
+
+  ##
+  # Helper to check if onnimonni/signaler added more certs
+  ##
+  def amount_of_cert_files()
+    Dir[Dir.home+"/.gdev/certs/*.crt"].count
+  end
+
 end
 
 DevTool.new(ARGV) if __FILE__==$0
